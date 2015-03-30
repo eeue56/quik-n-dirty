@@ -1,10 +1,10 @@
-angular.module('CsvParser', [])
+angular.module("CsvParser", [])
 
 .factory('CsvParser', function() {
 
     function CsvParser(data, fieldSpliterChar, recordSpliterChar){
 
-        if (!(this instanceof CsvParser)) return new CsvParser(data, spliter);
+        if (!(this instanceof CsvParser)) return new CsvParser(data, fieldSpliterChar, recordSpliterChar);
 
         this._data = data;
         this._fieldSpliterChar = fieldSpliterChar || ',';
@@ -25,8 +25,7 @@ angular.module('CsvParser', [])
 
     CsvParser.prototype = {
         fieldSplit: function(text) {
-            var me = this;
-            return _split(me._fieldSpliterChar, text);
+            return _split(this._fieldSpliterChar, text);
         },
         recordSplit: function(text) {
             return _split(this._recordSpliterChar, text);
@@ -55,6 +54,12 @@ angular.module('CsvParser', [])
             var index = this.find(name);
 
             return record[index];
+        },
+        columnOfAll: function(name){
+            var me = this;
+            return this.parsedData.values.map(function(v) {
+                return me.columnOf(name, v);
+            });
         },
         filterByColumn: function(columnName, comparison){
             var index = this.find(columnName);
@@ -97,13 +102,7 @@ angular.module('CsvParser', [])
                         var values = columns[key];
                         var currentIndex = me.find(key);
 
-                        if (values.length < 1){
-                            console.log("No values for key, ", key);
-                            continue;
-                        }
-
-                        if (currentIndex < 0) {
-                            console.log("Key, ", key, "not found");
+                        if (values.length < 1 || currentIndex < 0){
                             continue;
                         }
 
@@ -130,4 +129,4 @@ angular.module('CsvParser', [])
     };
 
     return CsvParser;
-})
+});
