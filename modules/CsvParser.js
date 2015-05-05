@@ -36,15 +36,35 @@ angular.module("CsvParser", [])
         },
         // parse the data and store it in parsedData
         // field headers are stored in parsedData.headers
-        // TODO: allow for the ability to not store headers and to pass headers
-        parse: function() {
+        // takes options object
+        // options: 
+        //      hasHeaders: boolean to say if first record in file contains headers
+        //      headers: array of string names to use as headers
+        // if headers is defined then hasHeaders must be set to false.
+        // 
+        parse: function(options) {
+            if (typeof options === "undefined"){
+                options = {
+                    hasHeaders: true
+                };
+            }
+
             var me = this;
             var temp = this.recordSplit(this._data).map(function(v){
                 return me.fieldSplit(v);
             });
 
-            this.parsedData.headers = temp[0];
-            this.parsedData.values = temp.splice(1);
+            if (options.hasHeaders) {
+                this.parsedData.headers = temp[0];
+                this.parsedData.values = temp.splice(1);
+            } else {
+                this.parsedData.headers = [];
+                this.parsedData.values = temp;
+            }
+
+            if (typeof options.headers !== "undefined"){
+                this.parsedData.headers = options.headers;
+            }
         }, 
         // returns the index of the field header with a given name
         // or -1 if not found
