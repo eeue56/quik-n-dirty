@@ -88,7 +88,6 @@ angular.module("CsvParser", [])
             });
         },
         // returns records where named column of record is not equal to some value
-        // TODO: should be using !==
         recordsWithout: function(columnName, value){
             var comparison = function(val){
                 return val !== value;
