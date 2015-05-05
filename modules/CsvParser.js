@@ -91,7 +91,7 @@ angular.module("CsvParser", [])
         // TODO: should be using !==
         recordsWithout: function(columnName, value){
             var comparison = function(val){
-                return val != value;
+                return val !== value;
             };
 
             if (value instanceof Array) {
