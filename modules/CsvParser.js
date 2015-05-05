@@ -19,17 +19,24 @@ angular.module("CsvParser", [])
         this.parse();
     };
 
+    // spliter is the text to split on
+    // text is the text to split
     var _split = function(splitter, text){ 
         return text.split(splitter);
     };
 
     CsvParser.prototype = {
+        // split text up by field
         fieldSplit: function(text) {
             return _split(this._fieldSpliterChar, text);
         },
+        // split text up by record
         recordSplit: function(text) {
             return _split(this._recordSpliterChar, text);
         },
+        // parse the data and store it in parsedData
+        // field headers are stored in parsedData.headers
+        // TODO: allow for the ability to not store headers and to pass headers
         parse: function() {
             var me = this;
             var temp = this.recordSplit(this._data).map(function(v){
@@ -39,9 +46,12 @@ angular.module("CsvParser", [])
             this.parsedData.headers = temp[0];
             this.parsedData.values = temp.splice(1);
         }, 
+        // returns the index of the field header with a given name
+        // or -1 if not found
         find: function(name) {
             return this.parsedData.headers.indexOf(name);
         },
+        // gets an entire column by name
         getColumn: function(name) { 
             var index = this.find(name);
 
@@ -49,18 +59,21 @@ angular.module("CsvParser", [])
                 return v[index];
             });
         },
+        // returns the "named" field of a given record
         columnOf: function(name, record){
             // TODO: move this out into record prototype
             var index = this.find(name);
 
             return record[index];
         },
+        // returns the "named" field of all records
         columnOfAll: function(name){
             var me = this;
             return this.parsedData.values.map(function(v) {
                 return me.columnOf(name, v);
             });
         },
+        // filters records by a named column being passed to a given comparision function
         filterByColumn: function(columnName, comparison){
             var index = this.find(columnName);
 
@@ -68,11 +81,14 @@ angular.module("CsvParser", [])
                 return comparison(value[index], i, obj);
             });
         },
+        // returns records where named column of record is equal to some value
         recordsWith: function(columnName, value){
             return this.filterByColumn(columnName, function(val){
                 return val === value;
             });
         },
+        // returns records where named column of record is not equal to some value
+        // TODO: should be using !==
         recordsWithout: function(columnName, value){
             var comparison = function(val){
                 return val != value;
@@ -86,9 +102,11 @@ angular.module("CsvParser", [])
 
             return this.filterByColumn(columnName, comparison);
         },
+        // columns should be an object with 
+        // key : [values]
+        // returns records where the columns don't match any values given
         recordsWithoutByColumns: function(columns){
-            // columns should be an object with 
-            // key : [values]
+            
 
             var me = this;
 
