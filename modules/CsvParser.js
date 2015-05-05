@@ -126,13 +126,14 @@ angular.module("CsvParser", [])
         // returns records where the columns don't match any values given
         recordsWithoutByColumns: function(columns){
             
-
             var me = this;
 
             var is_in_array = function(values, val) {
                 return values.indexOf(val) > -1;
             };
 
+            // creates a function which returns true if a record does not contain the values
+            // in "values" 
             var is_without = function(columns){
                 return function(record){
                     for (var key in columns){
@@ -162,7 +163,58 @@ angular.module("CsvParser", [])
             }
 
             return records;
-        }   
+        },
+        recordsWithByColumns: function(columns){
+
+            var me = this;
+
+            var is_in_array = function(values, val) {
+                return values.indexOf(val) > -1;
+            };
+
+            // creates a function which returns true if a record does contain the value
+            // in "values" 
+            var is_with = function(columns){
+                return function(record){
+                    for (var key in columns){
+                        var values = columns[key];
+                        var currentIndex = me.find(key);
+
+                        if (values.length < 1) continue;
+                        if (currentIndex < 0){
+                            console.log("No such field as ", key);
+                            continue;
+                        } 
+
+                        if (!is_in_array(values, record[currentIndex])){
+                            return false;
+                        }
+                    }
+
+                    return true;
+                };
+            }(columns);
+
+            var records = [];
+
+            for (var i = 0; i < this.parsedData.values.length; i++){
+                var currentRecord = this.parsedData.values[i];
+                if (is_with(currentRecord)){
+                    records.push(currentRecord);
+                } 
+            }
+
+            return records;
+        },
+        recordsWithByAndColumns: function(columns){
+
+        },
+        // TODO: rename
+        // returns records where a given set of column names must contain all the values 
+        // in the associated array  
+        recordsWithoutByAndColumns: function(columns){
+
+        }
     };
 
     return CsvParser;
