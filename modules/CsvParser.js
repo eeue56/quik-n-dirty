@@ -124,6 +124,8 @@ angular.module("CsvParser", [])
         // columns should be an object with 
         // key : [values]
         // returns records where the columns don't match any values given
+        //
+        // TODO: all "records..ByColumns" can be refactored into being much smaller
         recordsWithoutByColumns: function(columns){
             
             var me = this;
@@ -239,14 +241,63 @@ angular.module("CsvParser", [])
 
                     return true;
                 };
+
             }(columns);
 
+            for (var i = 0; i < this.parsedData.values.length; i++){
+                var currentRecord = this.parsedData.values[i];
+                if (is_with(currentRecord)){
+                    records.push(currentRecord);
+                } 
+            }
+
+            return records;
         },
         // TODO: rename
         // returns records where a given set of column names must contain all the values 
         // in the associated array  
         recordsWithoutByAndColumns: function(columns){
+             var me = this;
 
+            var is_in_array = function(values, val) {
+                return values.indexOf(val) > -1;
+            };
+
+            // creates a function which returns true if a record does contain the value
+            // in "values" 
+            var is_not_all = function(columns){
+                return function(record){
+                    for (var key in columns){
+                        var values = columns[key];
+                        var currentIndex = me.find(key);
+
+                        if (values.length < 1) continue;
+                        if (currentIndex < 0){
+                            console.log("No such field as ", key);
+                            continue;
+                        } 
+
+                        // assumes record entry is an array
+                        for (var i = 0; i < values.length; i++){
+                            if (is_in_array(values[i], record[currentIndex])){
+                                return false;
+                            }
+                        }
+                    }
+
+                    return true;
+                };
+
+            }(columns);
+
+            for (var i = 0; i < this.parsedData.values.length; i++){
+                var currentRecord = this.parsedData.values[i];
+                if (is_with(currentRecord)){
+                    records.push(currentRecord);
+                } 
+            }
+
+            return records;
         }
     };
 
