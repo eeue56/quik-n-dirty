@@ -208,6 +208,39 @@ angular.module("CsvParser", [])
         },
         recordsWithByAndColumns: function(columns){
 
+
+            var me = this;
+
+            var is_in_array = function(values, val) {
+                return values.indexOf(val) > -1;
+            };
+
+            // creates a function which returns true if a record does contain the value
+            // in "values" 
+            var is_all = function(columns){
+                return function(record){
+                    for (var key in columns){
+                        var values = columns[key];
+                        var currentIndex = me.find(key);
+
+                        if (values.length < 1) continue;
+                        if (currentIndex < 0){
+                            console.log("No such field as ", key);
+                            continue;
+                        } 
+
+                        // assumes record entry is an array
+                        for (var i = 0; i < values.length; i++){
+                            if (!is_in_array(values[i], record[currentIndex])){
+                                return false;
+                            }
+                        }
+                    }
+
+                    return true;
+                };
+            }(columns);
+
         },
         // TODO: rename
         // returns records where a given set of column names must contain all the values 
