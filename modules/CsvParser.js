@@ -244,9 +244,11 @@ angular.module("CsvParser", [])
 
             }(columns);
 
+            var records = [];
+
             for (var i = 0; i < this.parsedData.values.length; i++){
                 var currentRecord = this.parsedData.values[i];
-                if (is_with(currentRecord)){
+                if (is_all(currentRecord)){
                     records.push(currentRecord);
                 } 
             }
@@ -290,9 +292,11 @@ angular.module("CsvParser", [])
 
             }(columns);
 
+            var records = [];
+
             for (var i = 0; i < this.parsedData.values.length; i++){
                 var currentRecord = this.parsedData.values[i];
-                if (is_with(currentRecord)){
+                if (is_not_all(currentRecord)){
                     records.push(currentRecord);
                 } 
             }
