@@ -121,32 +121,40 @@ angular.module("CsvParser", [])
 
             return this.filterByColumn(columnName, comparison);
         },
+        doesRecordMatch: function(record, columnName, value){
+            var me = this;
+            var columnIndex = me.find(columnName);
+
+            if (value.length < 1 || columnIndex < 0) return true;
+
+            return value.indexOf(record[columnIndex]) > -1;
+        },
+        _recordsXByColumns: function(comparisonFunction){
+            var records = [];
+
+            for (var i = 0; i < this.parsedData.values.length; i++){
+                var currentRecord = this.parsedData.values[i];
+                if (comparisonFunction(currentRecord)){
+                    records.push(currentRecord);
+                } 
+            }
+
+            return records;
+        },
         // columns should be an object with 
         // key : [values]
         // returns records where the columns don't match any values given
         //
         // TODO: all "records..ByColumns" can be refactored into being much smaller
         recordsWithoutByColumns: function(columns){
-            
             var me = this;
-
-            var is_in_array = function(values, val) {
-                return values.indexOf(val) > -1;
-            };
 
             // creates a function which returns true if a record does not contain the values
             // in "values" 
             var is_without = function(columns){
                 return function(record){
                     for (var key in columns){
-                        var values = columns[key];
-                        var currentIndex = me.find(key);
-
-                        if (values.length < 1 || currentIndex < 0){
-                            continue;
-                        }
-
-                        if (is_in_array(values, record[currentIndex])){
+                        if (me.doesRecordMatch(record, key, columns[key])){
                             return false;
                         }
                     }
@@ -155,40 +163,18 @@ angular.module("CsvParser", [])
                 };
             }(columns);
 
-            var records = [];
-
-            for (var i = 0; i < this.parsedData.values.length; i++){
-                var currentRecord = this.parsedData.values[i];
-                if (is_without(currentRecord)){
-                    records.push(currentRecord);
-                } 
-            }
-
-            return records;
+            return this._recordsXByColumns(is_without);
         },
         recordsWithByColumns: function(columns){
 
             var me = this;
-
-            var is_in_array = function(values, val) {
-                return values.indexOf(val) > -1;
-            };
 
             // creates a function which returns true if a record does contain the value
             // in "values" 
             var is_with = function(columns){
                 return function(record){
                     for (var key in columns){
-                        var values = columns[key];
-                        var currentIndex = me.find(key);
-
-                        if (values.length < 1) continue;
-                        if (currentIndex < 0){
-                            console.log("No such field as ", key);
-                            continue;
-                        } 
-
-                        if (!is_in_array(values, record[currentIndex])){
+                        if (!me.doesRecordMatch(record, key, columns[key])){
                             return false;
                         }
                     }
@@ -197,25 +183,18 @@ angular.module("CsvParser", [])
                 };
             }(columns);
 
-            var records = [];
-
-            for (var i = 0; i < this.parsedData.values.length; i++){
-                var currentRecord = this.parsedData.values[i];
-                if (is_with(currentRecord)){
-                    records.push(currentRecord);
-                } 
-            }
-
-            return records;
+            return this._recordsXByColumns(is_with);
         },
+        // How do you feel?
+        //  Happy || Empowered || Glad
+        //  1      | 0          | 1
+        // Happy -> True
+        // Happy Empowered -> True
+        // Happy Glad -> True
+        // Empowered -> False
+        //  -> False
         recordsWithByAndColumns: function(columns){
-
-
             var me = this;
-
-            var is_in_array = function(values, val) {
-                return values.indexOf(val) > -1;
-            };
 
             // creates a function which returns true if a record does contain the value
             // in "values" 
@@ -225,15 +204,12 @@ angular.module("CsvParser", [])
                         var values = columns[key];
                         var currentIndex = me.find(key);
 
-                        if (values.length < 1) continue;
-                        if (currentIndex < 0){
-                            console.log("No such field as ", key);
-                            continue;
-                        } 
+                        if(typeof(record[currentIndex]) === "undefined" || record[currentIndex].trim() === "") return false;
 
+                        
                         // assumes record entry is an array
                         for (var i = 0; i < values.length; i++){
-                            if (!is_in_array(values[i], record[currentIndex])){
+                            if (me.doesRecordMatch(record, key, columns[key])){
                                 return false;
                             }
                         }
@@ -244,16 +220,51 @@ angular.module("CsvParser", [])
 
             }(columns);
 
-            var records = [];
+            return this._recordsXByColumns(is_all);
+        },
+        // How do you feel?
+        //  Happy || Empowered || Glad
+        //  1      | 0          | 1
+        // Happy -> True
+        // Happy Empowered -> True
+        // Happy Glad -> True
+        // Empowered -> False
+        //  -> False
+        isRecordWithByAndColumns: function(columns, record){
 
-            for (var i = 0; i < this.parsedData.values.length; i++){
-                var currentRecord = this.parsedData.values[i];
-                if (is_all(currentRecord)){
-                    records.push(currentRecord);
+
+            var me = this;
+
+            var is_in_array = function(values, val) {
+                return values.indexOf(val) > -1;
+            };
+
+            for (var key in columns){
+                var values = columns[key];
+                var currentIndex = me.find(key);
+
+                if (values.length < 1) continue;
+                if (currentIndex < 0){
+                    console.log("No such field as ", key);
+                    continue;
                 } 
+                
+                console.log("key is..", key);
+                console.log("values is.. ", values);
+                console.log("record value is.. ", record[currentIndex]);
+
+                if(typeof(record[currentIndex]) === "undefined" || record[currentIndex].trim() === "") return false;
+
+                // assumes record entry is an array
+                for (var i = 0; i < values.length; i++){
+                    if (!is_in_array(values[i], record[currentIndex])){
+                        return false;
+                    }
+                }
             }
 
-            return records;
+            return true;
+
         },
         // TODO: rename
         // returns records where a given set of column names must contain all the values 
@@ -261,9 +272,6 @@ angular.module("CsvParser", [])
         recordsWithoutByAndColumns: function(columns){
              var me = this;
 
-            var is_in_array = function(values, val) {
-                return values.indexOf(val) > -1;
-            };
 
             // creates a function which returns true if a record does contain the value
             // in "values" 
@@ -274,14 +282,10 @@ angular.module("CsvParser", [])
                         var currentIndex = me.find(key);
 
                         if (values.length < 1) continue;
-                        if (currentIndex < 0){
-                            console.log("No such field as ", key);
-                            continue;
-                        } 
 
                         // assumes record entry is an array
                         for (var i = 0; i < values.length; i++){
-                            if (is_in_array(values[i], record[currentIndex])){
+                            if (!me.doesRecordMatch(record, key, columns[key])){
                                 return false;
                             }
                         }
@@ -292,16 +296,15 @@ angular.module("CsvParser", [])
 
             }(columns);
 
-            var records = [];
+            return this._recordsXByColumns(is_not_all);
+        },
+        //
+        andor: function(wrappedColumns){
+            var me = this;
 
-            for (var i = 0; i < this.parsedData.values.length; i++){
-                var currentRecord = this.parsedData.values[i];
-                if (is_not_all(currentRecord)){
-                    records.push(currentRecord);
-                } 
-            }
+            var or_records = me.recordsWithoutByColumns(wrappedColumns["OR"]);
 
-            return records;
+            return or_records;
         }
     };
 
