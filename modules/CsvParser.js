@@ -1,3 +1,78 @@
+// union takes two record sets and combines them into a 
+// single one - provided that each record is in both data sets
+var union = function(firstRecords, secondRecords){
+
+    var outRecords = [];
+
+    for (var i = 0; i < firstRecords.length; i++){
+        var firstRecord = firstRecords[i];
+        
+        for (var j = 0; j < secondRecords; j++){
+            var secondRecord = secondRecords[j];
+
+            if (firstRecord === secondRecord){
+                outRecords.push(firstRecord);
+                break;
+            }
+        }
+    }
+
+    return outRecords;
+};
+
+var difference = function(firstRecords, secondRecords){
+
+    var outRecords = [];
+
+    for (var i = 0; i < firstRecords.length; i++){
+        var found = false;
+        var firstRecord = firstRecords[i];
+
+        for (var j = 0; j < secondRecords; j++){
+            var secondRecord = secondRecords[j];
+
+            if (firstRecord === secondRecord){
+                found = true;
+                break;
+            }
+        }
+
+        if (!found){
+            outRecords.push(firstRecord);
+        }
+    }
+
+    return outRecords;
+};
+
+
+// join two sets of records 
+var setJoin = function(firstRecords, secondRecords){
+
+    var outRecords = [];
+
+    for (var i = 0; i < firstRecords.length; i++){
+        var found = false;
+        var firstRecord = firstRecords[i];
+        var tempRecord = firstRecord[i];
+
+        for (var j = 0; j < secondRecords; j++){
+            var secondRecord = secondRecords[j];
+
+            if (firstRecord === secondRecord){
+                // todo: apply set theory here
+                break;
+
+            }
+        }
+
+        outRecords.push(tempRecord);
+    }
+
+    return outRecords;
+};
+
+
 angular.module("CsvParser", [])
 
 .factory('CsvParser', function() {
@@ -301,10 +376,11 @@ angular.module("CsvParser", [])
         //
         andor: function(wrappedColumns){
             var me = this;
+            var orRecords = me.recordsWithoutByColumns(wrappedColumns["OR"]);
+            var andRecords = me.recordsWithoutByAndColumns(wrappedColumns["AND"]);
 
-            var or_records = me.recordsWithoutByColumns(wrappedColumns["OR"]);
 
-            return or_records;
+            return union(orRecords, andRecords);
         }
     };
 
