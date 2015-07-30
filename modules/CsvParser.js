@@ -7,10 +7,10 @@ var union = function(firstRecords, secondRecords){
     for (var i = 0; i < firstRecords.length; i++){
         var firstRecord = firstRecords[i];
         
-        for (var j = 0; j < secondRecords; j++){
+        for (var j = 0; j < secondRecords.length; j++){
             var secondRecord = secondRecords[j];
 
-            if (firstRecord === secondRecord){
+            if (firstRecord[0] == secondRecord[0]){
                 outRecords.push(firstRecord);
                 break;
             }
@@ -77,21 +77,22 @@ angular.module("CsvParser", [])
 
 .factory('CsvParser', function() {
 
-    function CsvParser(data, fieldSpliterChar, recordSpliterChar){
+    function CsvParser(data, fieldSpliterChar, recordSpliterChar, options){
 
         if (!(this instanceof CsvParser)) return new CsvParser(data, fieldSpliterChar, recordSpliterChar);
 
-        this._data = data;
+        this._data = data.trim();
         this._fieldSpliterChar = fieldSpliterChar || ',';
         this._recordSpliterChar = recordSpliterChar || '\n';
-
 
         this.parsedData = {
             headers: [],
             values: []
         };
 
-        this.parse();
+        if (typeof options === "undefined") options = null;
+
+        this.parse(options);
     };
 
     // spliter is the text to split on
@@ -118,7 +119,7 @@ angular.module("CsvParser", [])
         // if headers is defined then hasHeaders must be set to false.
         // 
         parse: function(options) {
-            if (typeof options === "undefined"){
+            if (typeof options === "undefined" || options === null){
                 options = {
                     hasHeaders: true
                 };
@@ -136,6 +137,8 @@ angular.module("CsvParser", [])
                 this.parsedData.headers = [];
                 this.parsedData.values = temp;
             }
+
+            console.log(this.parsedData);
 
             if (typeof options.headers !== "undefined"){
                 this.parsedData.headers = options.headers;
@@ -376,11 +379,14 @@ angular.module("CsvParser", [])
         //
         andor: function(wrappedColumns){
             var me = this;
+            console.log("wrapped", wrappedColumns);
+
             var orRecords = me.recordsWithoutByColumns(wrappedColumns["OR"]);
             var andRecords = me.recordsWithoutByAndColumns(wrappedColumns["AND"]);
 
+            var joined = union(orRecords, andRecords);
 
-            return union(orRecords, andRecords);
+            return joined;
         }
     };
 
